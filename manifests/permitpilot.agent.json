@@ -1,0 +1,76 @@
+{
+  "name": "permitpilot",
+  "display_name": "PermitPilot: Regulatory Response Copilot",
+  "version": "0.1.0",
+  "description": "Multi-agent system to classify and respond to regulatory comments with reviewer checks and performance optimizations.",
+  "trigger": {
+    "type": "webhook",
+    "events": ["issue_comment.created", "issues.opened"]
+  },
+  "agents": {
+    "classifier": {
+      "role": "routes incoming text to a responder domain",
+      "model": {
+        "provider": "openai",
+        "model": "gpt-4o-mini",
+        "temperature": 0.05,
+        "max_tokens": 256
+      },
+      "runtime": "python",
+      "entrypoint": "src/agents/classifier_agent.py"
+    },
+    "responder_legal": {
+      "role": "composes legal responses using grounding documents",
+      "model": {
+        "provider": "openai",
+        "model": "gpt-4o",
+        "temperature": 0.0,
+        "max_tokens": 1200
+      },
+      "grounding": {
+        "embeddings_index": "s3://permitpilot/embeddings/legal",
+        "documents_ref": "REF:LEGAL_DOCS_SECRET"
+      },
+      "entrypoint": "src/agents/responder_agent.py"
+    },
+    "reviewer": {
+      "role": "performs compliance, tone, and hallucination checks",
+      "model": {
+        "provider": "openai",
+        "model": "gpt-4o-mini",
+        "temperature": 0.0,
+        "max_tokens": 400
+      },
+      "entrypoint": "src/agents/reviewer_agent.py"
+    }
+  },
+  "performance": {
+    "token_budget": 1600,
+    "truncation_strategy": "prioritize title->body->most_recent_comments",
+    "streaming": {
+      "enabled_for": ["reviewer"],
+      "reason": "reviewer can stream incremental checks; responders prefer non-streaming atomic output"
+    },
+    "retry": {
+      "max_attempts": 2,
+      "backoff_seconds": 2
+    }
+  },
+  "scopes": {
+    "repositories": ["my-org/permitpilot-demo"],
+    "read": ["issues", "pull_requests"],
+    "write": ["issues", "issue_comments"]
+  },
+  "webhook": {
+    "endpoint": "https://agents.example.com/hooks/permitpilot",
+    "secret_ref": "REF:AGENT_WEBHOOK_SECRET"
+  },
+  "env": {
+    "LOG_LEVEL": "INFO",
+    "METRICS_ENDPOINT": "http://localhost:9000/metrics"
+  },
+  "metadata": {
+    "owner": "team-compliance",
+    "contact": "team-compliance@example.com"
+  }
+}
