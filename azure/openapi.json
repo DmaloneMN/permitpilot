@@ -1,0 +1,194 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "PermitPilot Plugin API",
+    "version": "0.1.0",
+    "description": "OpenAPI surface for the PermitPilot Azure Function plugin. Exposes endpoints for processing queries, health checks, and feedback. Use an API key in the 'x-api-key' header for authentication."
+  },
+  "servers": [
+    {
+      "url": "https://your-function-app.azurewebsites.net/api",
+      "description": "Azure Function App endpoint"
+    }
+  ],
+  "paths": {
+    "/permitpilot-process": {
+      "post": {
+        "summary": "Process permit query",
+        "description": "Submit a regulatory or permitting query for classification and response drafting",
+        "operationId": "process_permit_query",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "The permit or regulatory question to process"
+                  },
+                  "context": {
+                    "type": "object",
+                    "description": "Optional context information (jurisdiction, project type, etc.)",
+                    "additionalProperties": true
+                  }
+                },
+                "required": ["query"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully processed query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "response_id": {
+                      "type": "string",
+                      "description": "Unique identifier for this response"
+                    },
+                    "classification": {
+                      "type": "string",
+                      "description": "Type of query (legal, environmental, procedural)"
+                    },
+                    "response": {
+                      "type": "string",
+                      "description": "Generated response to the query"
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "description": "Confidence score (0-1)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid API key"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/permitpilot-feedback": {
+      "post": {
+        "summary": "Submit feedback",
+        "description": "Provide human feedback on a generated response",
+        "operationId": "submit_feedback",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "response_id": {
+                    "type": "string",
+                    "description": "ID of the response being rated"
+                  },
+                  "rating": {
+                    "type": "integer",
+                    "description": "Rating from 1-5",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "comments": {
+                    "type": "string",
+                    "description": "Optional feedback comments"
+                  }
+                },
+                "required": ["response_id", "rating"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback recorded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Feedback recorded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid API key"
+          }
+        }
+      }
+    },
+    "/permitpilot-health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Check if the plugin is running and healthy. This endpoint is intentionally unauthenticated to allow monitoring systems and health probes to access it.",
+        "operationId": "health_check",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      }
+    }
+  }
+}

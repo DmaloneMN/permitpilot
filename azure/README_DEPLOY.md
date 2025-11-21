@@ -12,6 +12,21 @@ PermitPilot provides three Azure Functions for serverless deployment:
 
 All functions are compatible with Azure Functions v4 and Python 3.10+.
 
+### Available Documentation
+
+- **This file (README_DEPLOY.md)** - Azure Functions deployment guide
+- **[README_CopilotPlugin.md](README_CopilotPlugin.md)** - Copilot Studio plugin integration guide
+
+### Configuration Files
+
+The `azure/` directory includes these configuration files:
+
+- `host.json` - Azure Functions host configuration
+- `openapi.json` - OpenAPI 3.0.1 specification for the plugin API
+- `ai-plugin.json` - Copilot Studio plugin manifest
+- `local.settings.json.example` - Example local development settings
+- `functions/*/function.json` - Individual function binding configurations
+
 ## Prerequisites
 
 - Python 3.10 or higher
@@ -37,7 +52,17 @@ pip install -r requirements.txt
 
 ### 2. Create a local.settings.json file
 
-Create `azure/local.settings.json` (this file is git-ignored):
+Create `azure/local.settings.json` based on the example file (this file is git-ignored):
+
+```bash
+# Copy the example file
+cp local.settings.json.example local.settings.json
+
+# Edit and add your API key
+nano local.settings.json
+```
+
+The file should contain:
 
 ```json
 {
@@ -45,6 +70,7 @@ Create `azure/local.settings.json` (this file is git-ignored):
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "python",
+    "PERMITPILOT_API_KEY": "your-secure-key-here",
     "AzureWebJobsFeatureFlags": "EnableWorkerIndexing"
   }
 }
@@ -334,14 +360,36 @@ az functionapp config appsettings list \
 - Verify Python version matches between local and Azure (3.10)
 - Check that function bindings are correct in `function.json`
 
+## Copilot Studio Plugin Integration
+
+After deploying your Azure Functions, you can integrate PermitPilot with Microsoft Copilot Studio as a custom plugin. See the detailed guide:
+
+📄 **[Copilot Studio Plugin Setup Guide](README_CopilotPlugin.md)**
+
+This guide covers:
+- Setting up the OpenAPI specification (`openapi.json`)
+- Configuring the AI plugin manifest (`ai-plugin.json`)
+- Registering the plugin in Copilot Studio
+- Testing and troubleshooting the integration
+
+Quick start:
+```bash
+# After deployment, update the URLs in the plugin files
+sed -i 's/your-function-app/your-actual-app-name/g' openapi.json
+sed -i 's/your-function-app/your-actual-app-name/g' ai-plugin.json
+
+# Then follow the steps in README_CopilotPlugin.md to register with Copilot Studio
+```
+
 ## Next Steps
 
-1. **Integrate with PermitPilot agents** - Update function handlers to call the actual agent system from `src/`
-2. **Add authentication** - Implement API key or OAuth validation
-3. **Set up database** - Store queries and feedback in Azure Cosmos DB or SQL Database
-4. **Add caching** - Use Azure Redis Cache for frequently accessed data
-5. **Implement rate limiting** - Protect against abuse
-6. **Add CORS configuration** - If calling from web applications
+1. **Set up Copilot Studio Plugin** - Follow [README_CopilotPlugin.md](README_CopilotPlugin.md) to register as a custom plugin
+2. **Integrate with PermitPilot agents** - Update function handlers to call the actual agent system from `src/`
+3. **Add authentication** - Implement API key or OAuth validation (see plugin guide)
+4. **Set up database** - Store queries and feedback in Azure Cosmos DB or SQL Database
+5. **Add caching** - Use Azure Redis Cache for frequently accessed data
+6. **Implement rate limiting** - Protect against abuse
+7. **Add CORS configuration** - If calling from web applications
 
 ## Additional Resources
 

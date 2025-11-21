@@ -1,0 +1,9 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "PERMITPILOT_API_KEY": "REPLACE_WITH_SECURE_KEY",
+    "AzureWebJobsFeatureFlags": "EnableWorkerIndexing"
+  }
+}
