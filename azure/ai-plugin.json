@@ -14,7 +14,7 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://your-function-app.azurewebsites.net/api/openapi.json",
+    "url": "https://your-function-app.azurewebsites.net/openapi.json",
     "is_user_authenticated": false
   },
   "logo_url": "https://your-function-app.azurewebsites.net/logo.png",

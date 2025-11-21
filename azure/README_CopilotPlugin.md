@@ -35,10 +35,12 @@ Replace `your-function-app` with your actual Azure Function App name:
 2. Add your OpenAI verification token (if using OpenAI plugin format)
 3. Update contact and legal URLs
 
+**Note:** The `openapi.json` file can be hosted as a static file or you can paste its contents directly into Copilot Studio. If hosting, ensure it's accessible from the URL specified below.
+
 ```json
 {
   "api": {
-    "url": "https://your-actual-app-name.azurewebsites.net/api/openapi.json"
+    "url": "https://your-actual-app-name.azurewebsites.net/openapi.json"
   },
   "logo_url": "https://your-actual-app-name.azurewebsites.net/logo.png",
   "contact_email": "your-email@example.com",
