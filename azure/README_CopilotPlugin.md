@@ -32,10 +32,12 @@ Replace `your-function-app` with your actual Azure Function App name:
 
 #### Update `ai-plugin.json`
 1. Replace `your-function-app` with your actual Function App name
-2. Add your OpenAI verification token (if using OpenAI plugin format)
-3. Update contact and legal URLs
+2. Update contact and legal URLs
+3. (Optional) Add OpenAI verification token if submitting to OpenAI plugin store
 
-**Note:** The `openapi.json` file can be hosted as a static file or you can paste its contents directly into Copilot Studio. If hosting, ensure it's accessible from the URL specified below.
+**Notes:** 
+- The `openapi.json` file can be hosted as a static file or you can paste its contents directly into Copilot Studio. If hosting, ensure it's accessible from the URL specified below.
+- The `verification_tokens` field with `openai` key is only needed if you're submitting to the OpenAI plugin store. For Copilot Studio only, you can remove this field or leave it as-is.
 
 ```json
 {
@@ -84,9 +86,31 @@ az functionapp config appsettings set \
 
 #### Option B: Using Microsoft 365 Copilot Plugin
 
-1. Host both `ai-plugin.json` and `openapi.json` at your Azure Function's root
-2. Submit for plugin verification through Microsoft Partner Center
-3. Follow Microsoft's plugin certification process
+**Note:** For Microsoft 365 Copilot plugins, you'll need to host the plugin manifest files:
+
+1. **Host the files** - Options include:
+   - Azure Blob Storage with public access
+   - GitHub Pages or another static hosting service
+   - Add an Azure Function endpoint to serve these files
+2. Ensure both `ai-plugin.json` and `openapi.json` are publicly accessible
+3. Submit for plugin verification through Microsoft Partner Center
+4. Follow Microsoft's plugin certification process
+
+Example Azure Function to serve openapi.json:
+```python
+# In a new function folder: functions/openapi-spec/__init__.py
+import json
+import azure.functions as func
+
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    with open('openapi.json', 'r') as f:
+        spec = json.load(f)
+    return func.HttpResponse(
+        json.dumps(spec),
+        mimetype="application/json",
+        status_code=200
+    )
+```
 
 ### 5. Test the Plugin
 
