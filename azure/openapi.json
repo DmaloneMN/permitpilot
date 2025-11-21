@@ -155,7 +155,7 @@
     "/permitpilot-health": {
       "get": {
         "summary": "Health check",
-        "description": "Check if the plugin is running and healthy",
+        "description": "Check if the plugin is running and healthy. This endpoint is intentionally unauthenticated to allow monitoring systems and health probes to access it.",
         "operationId": "health_check",
         "responses": {
           "200": {
