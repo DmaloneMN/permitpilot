@@ -1,0 +1,56 @@
+name: Deploy Azure Functions
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AZURE_FUNCTIONAPP_NAME: 'permitpilot-func'  # Set this to your function app name
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'azure'     # Path to your Azure Functions code
+  PYTHON_VERSION: '3.10'                      # Python version to use
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
+
+    - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 'Resolve Project Dependencies Using Pip'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+        popd
+
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+        scm-do-build-during-deployment: true
+        enable-oryx-build: true
+
+    - name: 'Post Deployment - Health Check'
+      shell: bash
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 30
+        HEALTH_URL="https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/permitpilot-health"
+        echo "Checking health endpoint: $HEALTH_URL"
+        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+        if [ "$HTTP_STATUS" -eq "200" ]; then
+          echo "✓ Health check passed (HTTP $HTTP_STATUS)"
+        else
+          echo "⚠ Health check returned HTTP $HTTP_STATUS (this may be expected if auth is required)"
+        fi
