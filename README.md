@@ -23,6 +23,11 @@ Repository layout
 - examples/ — prompt templates and sample inputs/outputs
 - tests/ — unit/integration test skeletons
 - dashboard/ — notes and starter for metrics/visualization
+- azure/ — Azure Functions deployment and Copilot Studio plugin integration
+
+Deployment options
+- **Azure Functions**: Deploy as serverless functions (see `azure/README_DEPLOY.md`)
+- **Copilot Studio Plugin**: Integrate with Microsoft Copilot Studio (see `azure/README_CopilotPlugin.md`)
 
 Next steps I can take:
 - Create the GitHub repo and open the initial commit/PR for you.
