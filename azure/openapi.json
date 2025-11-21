@@ -16,7 +16,7 @@
       "post": {
         "summary": "Process permit query",
         "description": "Submit a regulatory or permitting query for classification and response drafting",
-        "operationId": "processPermitQuery",
+        "operationId": "process_permit_query",
         "security": [
           {
             "ApiKeyAuth": []
@@ -89,7 +89,7 @@
       "post": {
         "summary": "Submit feedback",
         "description": "Provide human feedback on a generated response",
-        "operationId": "submitFeedback",
+        "operationId": "submit_feedback",
         "security": [
           {
             "ApiKeyAuth": []
@@ -156,7 +156,7 @@
       "get": {
         "summary": "Health check",
         "description": "Check if the plugin is running and healthy",
-        "operationId": "healthCheck",
+        "operationId": "health_check",
         "responses": {
           "200": {
             "description": "Service is healthy",

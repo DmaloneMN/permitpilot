@@ -6,7 +6,8 @@
   "description_for_model": "Use this API to submit events for classification and drafting, check plugin health, and send human feedback. The process endpoint accepts queries about permits and regulatory matters and returns classified responses. The feedback endpoint allows submitting ratings and comments on responses. The health endpoint checks service availability.",
   "auth": {
     "type": "service_http",
-    "authorization_type": "bearer",
+    "authorization_type": "custom",
+    "custom_auth_header": "x-api-key",
     "verification_tokens": {
       "openai": "REPLACE_WITH_YOUR_VERIFICATION_TOKEN"
     }
