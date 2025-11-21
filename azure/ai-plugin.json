@@ -9,7 +9,7 @@
     "authorization_type": "custom",
     "custom_auth_header": "x-api-key",
     "verification_tokens": {
-      "openai": "REPLACE_WITH_YOUR_VERIFICATION_TOKEN"
+      "openai": "REPLACE_WITH_OPENAI_PLUGIN_VERIFICATION_TOKEN_FROM_PARTNER_CENTER"
     }
   },
   "api": {
