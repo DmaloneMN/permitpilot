@@ -1,0 +1,22 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "PermitPilot Plugin",
+  "name_for_model": "permitpilot_plugin",
+  "description_for_human": "Plugin exposing PermitPilot orchestration endpoints (process events, health, and feedback) for Copilot Studio integration.",
+  "description_for_model": "Use this API to submit events for classification and drafting, check plugin health, and send human feedback. The process endpoint accepts queries about permits and regulatory matters and returns classified responses. The feedback endpoint allows submitting ratings and comments on responses. The health endpoint checks service availability.",
+  "auth": {
+    "type": "service_http",
+    "authorization_type": "bearer",
+    "verification_tokens": {
+      "openai": "REPLACE_WITH_YOUR_VERIFICATION_TOKEN"
+    }
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://your-function-app.azurewebsites.net/api/openapi.json",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://your-function-app.azurewebsites.net/logo.png",
+  "contact_email": "support@example.com",
+  "legal_info_url": "https://example.com/legal"
+}
