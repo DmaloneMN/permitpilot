@@ -1,76 +1,225 @@
 {
-  "name": "permitpilot",
-  "display_name": "PermitPilot: Regulatory Response Copilot",
-  "version": "0.1.0",
-  "description": "Multi-agent system to classify and respond to regulatory comments with reviewer checks and performance optimizations.",
-  "trigger": {
-    "type": "webhook",
-    "events": ["issue_comment.created", "issues.opened"]
+  "openapi": "3.0.1",
+  "info": {
+    "title": "PermitPilot Plugin API",
+    "version": "0.1.0",
+    "description": "OpenAPI for PermitPilot Azure Function plugin. Use an API key in the x-api-key header."
   },
-  "agents": {
-    "classifier": {
-      "role": "routes incoming text to a responder domain",
-      "model": {
-        "provider": "openai",
-        "model": "gpt-4o-mini",
-        "temperature": 0.05,
-        "max_tokens": 256
-      },
-      "runtime": "python",
-      "entrypoint": "src/agents/classifier_agent.py"
+  "servers": [
+    {
+      "url": "https://your-azure-function-app.azurewebsites.net",
+      "description": "Replace with your function host"
+    }
+  ],
+  "paths": {
+    "/api/permitpilot/process": {
+      "post": {
+        "summary": "Process an event through PermitPilot orchestration",
+        "operationId": "processEvent",
+        "tags": ["permitpilot"],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Event"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Processing result (approved / triage / error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     },
-    "responder_legal": {
-      "role": "composes legal responses using grounding documents",
-      "model": {
-        "provider": "openai",
-        "model": "gpt-4o",
-        "temperature": 0.0,
-        "max_tokens": 1200
-      },
-      "grounding": {
-        "embeddings_index": "s3://permitpilot/embeddings/legal",
-        "documents_ref": "REF:LEGAL_DOCS_SECRET"
-      },
-      "entrypoint": "src/agents/responder_agent.py"
+    "/api/permitpilot/feedback": {
+      "post": {
+        "summary": "Send human feedback for a previously processed item",
+        "operationId": "sendFeedback",
+        "tags": ["permitpilot"],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Feedback"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     },
-    "reviewer": {
-      "role": "performs compliance, tone, and hallucination checks",
-      "model": {
-        "provider": "openai",
-        "model": "gpt-4o-mini",
-        "temperature": 0.0,
-        "max_tokens": 400
-      },
-      "entrypoint": "src/agents/reviewer_agent.py"
+    "/api/permitpilot/health": {
+      "get": {
+        "summary": "Health check for the PermitPilot plugin",
+        "operationId": "healthCheck",
+        "tags": ["permitpilot"],
+        "responses": {
+          "200": {
+            "description": "Healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "uptime_seconds": { "type": "number", "example": 12345.67 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
-  "performance": {
-    "token_budget": 1600,
-    "truncation_strategy": "prioritize title->body->most_recent_comments",
-    "streaming": {
-      "enabled_for": ["reviewer"],
-      "reason": "reviewer can stream incremental checks; responders prefer non-streaming atomic output"
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      }
     },
-    "retry": {
-      "max_attempts": 2,
-      "backoff_seconds": 2
+    "schemas": {
+      "Event": {
+        "type": "object",
+        "required": ["title", "body"],
+        "properties": {
+          "title": { "type": "string" },
+          "body": { "type": "string" },
+          "comments": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of recent comments for context (optional)"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Optional metadata (repo, issue number, permit id, location, etc.)"
+          }
+        }
+      },
+      "Result": {
+        "type": "object",
+        "properties": {
+          "action": { "type": "string", "description": "post | triage-human | error" },
+          "domain": { "type": "string", "description": "Resolved domain tag (e.g., legal, environmental)" },
+          "draft": { "type": "string", "description": "Draft answer if action == post" },
+          "review": { "type": "object", "additionalProperties": true },
+          "classifier": { "type": "object", "additionalProperties": true },
+          "used_docs": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "error": { "type": "string" }
+        }
+      },
+      "Feedback": {
+        "type": "object",
+        "required": ["item_id", "vote"],
+        "properties": {
+          "item_id": { "type": "string", "description": "ID of the processed item" },
+          "vote": { "type": "string", "enum": ["up", "down"] },
+          "comments": { "type": "string" },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Auto-labels like hallucination, tone_mismatch"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
     }
-  },
-  "scopes": {
-    "repositories": ["my-org/permitpilot-demo"],
-    "read": ["issues", "pull_requests"],
-    "write": ["issues", "issue_comments"]
-  },
-  "webhook": {
-    "endpoint": "https://agents.example.com/hooks/permitpilot",
-    "secret_ref": "REF:AGENT_WEBHOOK_SECRET"
-  },
-  "env": {
-    "LOG_LEVEL": "INFO",
-    "METRICS_ENDPOINT": "http://localhost:9000/metrics"
-  },
-  "metadata": {
-    "owner": "team-compliance",
-    "contact": "team-compliance@example.com"
   }
 }
