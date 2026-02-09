@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-American Football GUI Game - Roblox Prototype
-A complete football game with Pygame
+American Football GUI Game
+A complete football game with Pygame - single file implementation
 """
 
 import pygame
@@ -51,7 +51,7 @@ try:
     FONT_SMALL = pygame.font.SysFont("Segoe UI,Arial,Helvetica", 24)
     FONT_TINY = pygame.font.SysFont("Segoe UI,Arial,Helvetica", 16)
     FONT_MICRO = pygame.font.SysFont("Segoe UI,Arial,Helvetica", 12)
-except:
+except (OSError, AttributeError):
     FONT_LARGE = pygame.font.Font(None, 48)
     FONT_MEDIUM = pygame.font.Font(None, 32)
     FONT_SMALL = pygame.font.Font(None, 24)
@@ -743,6 +743,7 @@ class CoinTossScene:
                 play_sound('click')
         
         if event.type == pygame.MOUSEBUTTONDOWN and self.winner:
+            x, y = event.pos
             # Continue button
             if 500 <= x <= 700 and 600 <= y <= 660:
                 self.done = True
@@ -1123,7 +1124,7 @@ class LivePlayScene:
                     play_catch_sound()
                 else:
                     play_sound('hit')
-                    self.result = "incomplete"
+                    self.result = {"type": "incomplete", "gain": 0}
                     self.done = True
         
         # Check for play end
@@ -1175,8 +1176,9 @@ class LivePlayScene:
                 int_return = random.randint(0, 25)
                 self.result = {"type": "interception", "gain": -int_return}
             # Completion/incompletion handled by ball flight
-            elif self.result and self.result == "incomplete":
-                self.result = {"type": "incomplete", "gain": 0}
+            elif self.result and self.result.get("type") == "incomplete":
+                # Already set as incomplete during ball flight
+                pass
             else:
                 # Completion
                 base_gain = random.randint(play["min_gain"], play["max_gain"])

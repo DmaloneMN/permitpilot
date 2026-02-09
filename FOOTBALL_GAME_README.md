@@ -1,4 +1,4 @@
-# American Football GUI Game - Roblox Prototype
+# American Football GUI Game
 
 A complete, fully-working American Football game built with Pygame in a single Python file.
 
@@ -139,12 +139,13 @@ All sounds are generated programmatically:
 - Crowd surface pre-rendered and cached for performance
 
 ## Development Notes
-This is a Roblox prototype designed to be tested in VS Code before porting to Roblox. The game demonstrates:
+This game demonstrates:
 - Complete NFL rules implementation
 - AI opponent play calling
 - User-controlled gameplay with multiple mechanics
 - Full game loop from coin toss to game over
 - Visual effects (particles, floating text, animations)
+- Single-file architecture with no external dependencies
 
 ## Troubleshooting
 
