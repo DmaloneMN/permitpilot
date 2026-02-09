@@ -61,32 +61,40 @@ except:
 # Sound generation functions
 def generate_sound(frequency, duration, volume=0.3):
     """Generate a simple sine wave sound"""
-    sample_rate = 22050
-    n_samples = int(round(duration * sample_rate))
-    
-    # Generate sine wave
-    buf = []
-    for i in range(n_samples):
-        value = int(volume * 32767 * math.sin(2.0 * math.pi * frequency * i / sample_rate))
-        buf.append([value, value])
-    
-    sound = pygame.sndarray.make_sound(buf)
-    return sound
+    try:
+        import numpy as np
+        sample_rate = 22050
+        n_samples = int(round(duration * sample_rate))
+        
+        # Generate sine wave using numpy
+        t = np.arange(n_samples) / sample_rate
+        wave = (volume * 32767 * np.sin(2.0 * np.pi * frequency * t)).astype(np.int16)
+        stereo_wave = np.column_stack((wave, wave))
+        
+        sound = pygame.sndarray.make_sound(stereo_wave)
+        return sound
+    except (ImportError, AttributeError):
+        # If numpy is not available, return a dummy sound object
+        return None
 
 def generate_noise(duration, volume=0.2):
     """Generate white noise"""
-    sample_rate = 22050
-    n_samples = int(round(duration * sample_rate))
-    
-    buf = []
-    for i in range(n_samples):
-        value = int(volume * 32767 * (random.random() * 2 - 1))
-        buf.append([value, value])
-    
-    sound = pygame.sndarray.make_sound(buf)
-    return sound
+    try:
+        import numpy as np
+        sample_rate = 22050
+        n_samples = int(round(duration * sample_rate))
+        
+        # Generate noise using numpy
+        wave = (volume * 32767 * (np.random.random(n_samples) * 2 - 1)).astype(np.int16)
+        stereo_wave = np.column_stack((wave, wave))
+        
+        sound = pygame.sndarray.make_sound(stereo_wave)
+        return sound
+    except (ImportError, AttributeError):
+        # If numpy is not available, return a dummy sound object
+        return None
 
-# Create sounds
+# Create sounds (will be None if numpy not available)
 SOUNDS = {
     'whistle': generate_sound(2000, 0.3, 0.3),
     'crowd': generate_noise(0.5, 0.15),
@@ -98,7 +106,7 @@ SOUNDS = {
 
 def play_sound(sound_name):
     """Play a sound if it exists"""
-    if sound_name in SOUNDS:
+    if sound_name in SOUNDS and SOUNDS[sound_name] is not None:
         SOUNDS[sound_name].play()
 
 def play_touchdown_fanfare():
@@ -106,21 +114,24 @@ def play_touchdown_fanfare():
     frequencies = [262, 330, 392, 523]  # C, E, G, C
     for freq in frequencies:
         sound = generate_sound(freq, 0.15, 0.2)
-        sound.play()
-        pygame.time.wait(100)
+        if sound is not None:
+            sound.play()
+            pygame.time.wait(100)
 
 def play_throw_sound():
     """Ascending whoosh"""
     sound = generate_sound(200, 0.2, 0.15)
-    sound.play()
+    if sound is not None:
+        sound.play()
 
 def play_catch_sound():
     """Two-tone pop"""
     sound1 = generate_sound(400, 0.1, 0.15)
     sound2 = generate_sound(300, 0.1, 0.15)
-    sound1.play()
-    pygame.time.wait(50)
-    sound2.play()
+    if sound1 is not None and sound2 is not None:
+        sound1.play()
+        pygame.time.wait(50)
+        sound2.play()
 
 # Particle system
 class Particle:
